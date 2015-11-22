@@ -28,11 +28,12 @@ def torrent_hash(torrent_dict):
 KB = 1000.
 MB = 1000 * KB
 GB = 1000 * MB
-PB = 1000 * GB
+TB = 1000 * GB
+PB = 1000 * TB
 
 def pretty_size(size):
-    if size > PB:
-        return "{0:.2f} Pb".format(size / PB)
+    if size > TB:
+        return "{0:.2f} Tb".format(size / TB)
     if size > GB:
         return "{0:.2f} Gb".format(size / GB)
     if size > MB:
