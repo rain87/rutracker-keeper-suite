@@ -68,6 +68,7 @@ def _get_data_by(api_name, filter_name, data):
 get_tor_topic_data = lambda thread_id: _get_data_by('get_tor_topic_data', 'topic_id', thread_id)
 get_topic_id = lambda infohash: _get_data_by('get_topic_id', 'hash', infohash)
 get_forum_data = lambda forum_id: _get_data_by('get_forum_data', 'forum_id', forum_id)
+get_tor_hash = lambda topic_id: _get_data_by('get_tor_hash', 'topic_id', topic_id)
 
 
 def get_forum_torrents_status(id):
