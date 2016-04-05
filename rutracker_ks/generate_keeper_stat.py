@@ -10,6 +10,9 @@ sys.setdefaultencoding('utf-8')
 import config
 from utils import *
 import rutracker_api as api
+import datetime
+import qbt_api as qbt
+
 
 RUTRACKER_META_KEY = 'rutracker_meta_v1'
 
@@ -58,22 +61,37 @@ fetch_rutracker_meta(torrents_meta)
 
 # format output for keeper post
 
-total_size = 0
-entries = []
+forums = { id: {'entries': [], 'size': 0} for id in config.keeped_forums }
 for torrent in torrents_meta:
     meta = torrent[RUTRACKER_META_KEY]
+    forum_id = meta['thread_details']['forum_id']
     if not meta['thread_details']['forum_id'] in config.keeped_forums:
         continue
+    if not qbt.is_torrent_completed(torrent_hash(torrent)):
+        continue
     size = torrent_size(torrent)
-    total_size += size
-    entries.append("[*][url={thread_url}]{thread_name}[/url] {torrent_size}".format(
+    forum = forums[forum_id]
+    forum['size'] += size
+    forum['entries'].append("[*][url={thread_url}]{thread_name}[/url] {torrent_size}".format(
         thread_url='http://rutracker.org/forum/viewtopic.php?t=' + str(meta['thread_id']),
         thread_name=meta['thread_details']['topic_title'],
-        torrent_size=pretty_size(size)))
+        torrent_size=pretty_size(size)),
+    )
 
-print '[spoiler="{total} шт. ({total_size})"]'.format(
-    total=len(entries), total_size=pretty_size(total_size))
-print '[list=1]'
-print '\n'.join(entries)
-print '[/list]'
-print '[/spoiler]'
+for id, forum in forums.iteritems():
+    print 'stat for {}'.format(id)
+    print '[b]Актуально на {}[/b]'.format(datetime.datetime.now().date().isoformat())
+    entries, total_size = forum['entries'], forum['size']
+    print 'Общее количество хранимых раздач подраздела: {total_cnt} шт. ({total_size})'.format(
+        total_cnt=len(entries), total_size=pretty_size(total_size))
+    cur = 0
+    while cur < len(entries):
+        cur_section_len = min(config.report_split_by, len(entries) - cur)
+        print '[spoiler="Раздачи, взятые на хранение, №№ {start} - {end}"]'.format(
+            start=cur+1, end=cur+cur_section_len)
+        print '[list=1]'
+        print '\n'.join(entries[cur : cur + cur_section_len])
+        print '[/list]'
+        print '[/spoiler]'
+        print ''
+        cur += cur_section_len
