@@ -1,10 +1,19 @@
 import requests, urllib
 import logging
 from time import sleep
+import pickle
 
 
 request_size_limit = 0
 LOGGER = logging.getLogger(__name__)
+
+cache = {}
+
+try:
+    with open('/tmp/rutracker_cache.pickle', 'rb') as f:
+        cache = pickle.load(f)
+except Exception:
+    pass
 
 
 def byteify(input):
@@ -44,12 +53,32 @@ def get_limit():
 def _iterative_get_data(api_name, full_list, param_generator):
     if not isinstance(full_list, list):
         full_list = [full_list]
+
+    # initialize cache
+    global cache
+    if not api_name in cache:
+        cache[api_name] = {}
+
+    api_cache = cache[api_name]
+    # search in cache, first
+    cache_keys = set(api_cache.keys())
+    cache_hit = cache_keys.intersection(full_list)
+    ret = { field: api_cache[field] for field in cache_hit }
+    full_list = list(set(full_list) - cache_hit)
+    if not full_list:
+        return ret
+
     current = 0
-    ret = {}
     while current < len(full_list):
         ret.update(_get_data(api_name, param_generator(
             full_list[current : current + request_size_limit])))
         current += request_size_limit
+
+    # update cache with new data
+    api_cache.update(ret)
+    with open('/tmp/rutracker_cache.pickle', 'wb') as f:
+        pickle.dump(cache, f)
+
     return ret
 
 
