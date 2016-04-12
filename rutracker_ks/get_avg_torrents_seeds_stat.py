@@ -12,6 +12,7 @@ import datetime
 import os
 import rutracker_api as api
 import qbt_api as qbt
+import config
 
 
 class TorrentStat:
@@ -68,15 +69,23 @@ for fid, stat in avg_stats.iteritems():
     remote_dying = [str(tpl[0]) for tpl in stat.remote.items() if tpl[1].avg() < 1]
 
     local_strong = [sha1.lower() for sha1 in api.get_tor_hash(local_strong).values()]
-    remote_dying = [sha1.lower() for sha1 in api.get_tor_hash(remote_dying).values()]
+    remote_dying = api.get_tor_hash(remote_dying)
 
     local_strong = [sha1 for sha1 in local_strong if qbt.is_torrent_exists(sha1)]
-    remote_dying = [sha1 for sha1 in remote_dying if not qbt.is_torrent_exists(sha1)]
+    remote_dying = [kv[0] for kv in remote_dying.iteritems() if not qbt.is_torrent_exists(kv[1])]
 
+    print "Weak local: {}".format(sum(int(tpl[1].avg() < 1) for tpl in stat.local.items()))
     print "Strong local: {}".format(len(local_strong))
     print "Dying remote: {}".format(len(remote_dying))
 
     qbt.remove_torrents(local_strong)
+
+    for i in range(0, len(remote_dying)):
+        print 'processing {} out of {}'.format(i, len(remote_dying))
+        id = remote_dying[i]
+        with open('/tmp/dl/{}.torrent'.format(id), 'wb') as f:
+            api.reliable_download_torrent(f, config.keeper_user_id, config.keeper_api_key, id)
+
 """
     print 'Local:'
     for stat in local_sorted:
