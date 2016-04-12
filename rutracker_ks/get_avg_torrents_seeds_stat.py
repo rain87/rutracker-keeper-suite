@@ -9,6 +9,9 @@ sys.setdefaultencoding('utf-8')
 from pymongo import MongoClient
 from collections import namedtuple
 import datetime
+import os
+import rutracker_api as api
+import qbt_api as qbt
 
 
 class TorrentStat:
@@ -27,7 +30,7 @@ class TorrentStat:
 
 client = MongoClient()
 db = client.rutracker_torrents_stats
-stat_records = db.stat.find({'ts': { '$gte': datetime.datetime.now() - datetime.timedelta(days=1), '$lt': datetime.datetime.now() } })
+stat_records = db.stat.find({'ts': { '$gte': datetime.datetime.now() - datetime.timedelta(weeks=1), '$lt': datetime.datetime.now() } })
 
 ForumStat = namedtuple('ForumStat', 'local remote')
 avg_stats = {}
@@ -58,9 +61,23 @@ for stat in stat_records:
 
 for fid, stat in avg_stats.iteritems():
     print 'Stat for {}:'.format(fid)
-    local_sorted = sorted(stat.local.items(), key=lambda tpl: -tpl[1].avg())
-    remote_sorted = sorted(stat.remote.items(), key=lambda tpl: tpl[1].avg())
+    #local_sorted = sorted(stat.local.items(), key=lambda tpl: -tpl[1].avg())
+    #remote_sorted = sorted(stat.remote.items(), key=lambda tpl: tpl[1].avg())
 
+    local_strong = [str(tpl[0]) for tpl in stat.local.items() if tpl[1].avg() > 2.5]
+    remote_dying = [str(tpl[0]) for tpl in stat.remote.items() if tpl[1].avg() < 1]
+
+    local_strong = [sha1.lower() for sha1 in api.get_tor_hash(local_strong).values()]
+    remote_dying = [sha1.lower() for sha1 in api.get_tor_hash(remote_dying).values()]
+
+    local_strong = [sha1 for sha1 in local_strong if qbt.is_torrent_exists(sha1)]
+    remote_dying = [sha1 for sha1 in remote_dying if not qbt.is_torrent_exists(sha1)]
+
+    print "Strong local: {}".format(len(local_strong))
+    print "Dying remote: {}".format(len(remote_dying))
+
+    qbt.remove_torrents(local_strong)
+"""
     print 'Local:'
     for stat in local_sorted:
         print '{}: {}'.format(stat[0], stat[1].avg())
@@ -69,4 +86,4 @@ for fid, stat in avg_stats.iteritems():
     for stat in remote_sorted:
         print '{}: {}'.format(stat[0], stat[1].avg())
     print ''
-
+"""
