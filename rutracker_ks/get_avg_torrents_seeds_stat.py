@@ -65,8 +65,8 @@ for fid, stat in avg_stats.iteritems():
     #local_sorted = sorted(stat.local.items(), key=lambda tpl: -tpl[1].avg())
     #remote_sorted = sorted(stat.remote.items(), key=lambda tpl: tpl[1].avg())
 
-    local_strong = [str(tpl[0]) for tpl in stat.local.items() if tpl[1].avg() > 2.5]
-    remote_dying = [str(tpl[0]) for tpl in stat.remote.items() if tpl[1].avg() < 1]
+    local_strong = [str(tpl[0]) for tpl in stat.local.items() if tpl[1].avg() > 2.5 and tpl[1].cnt > 24 * 5]
+    remote_dying = [str(tpl[0]) for tpl in stat.remote.items() if tpl[1].avg() < 1 and tpl[1].cnt > 24 * 5]
 
     local_strong = [sha1.lower() for sha1 in api.get_tor_hash(local_strong).values()]
     remote_dying = api.get_tor_hash(remote_dying)
@@ -77,6 +77,7 @@ for fid, stat in avg_stats.iteritems():
     print "Weak local: {}".format(sum(int(tpl[1].avg() < 1) for tpl in stat.local.items()))
     print "Strong local: {}".format(len(local_strong))
     print "Dying remote: {}".format(len(remote_dying))
+    continue
 
     qbt.remove_torrents(local_strong)
 
