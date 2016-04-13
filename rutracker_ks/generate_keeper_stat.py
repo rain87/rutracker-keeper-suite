@@ -12,6 +12,7 @@ from utils import *
 import rutracker_api as api
 import datetime
 import qbt_api as qbt
+from cStringIO import StringIO
 
 
 RUTRACKER_META_KEY = 'rutracker_meta_v1'
@@ -78,20 +79,53 @@ for torrent in torrents_meta:
         torrent_size=pretty_size(size)),
     )
 
+class StreamSplitter:
+    def __init__(self, chunk_size):
+        self._chunk_size = chunk_size
+        self._data_buf = StringIO()
+        self._data_len = 0
+
+    def reserve(self, size):
+        self._data_len += size
+
+    def print_and_reserve(self, s):
+        print s
+        self._data_len += len(s) + 1
+
+    def append(self, s):
+        if not s.endswith('\n'):
+            s += '\n'
+        if self._data_len + len(s) < self._chunk_size:
+            self._data_buf.write(s)
+            self._data_len += len(s)
+            return True
+        return False
+
+    def dump(self):
+        print self._data_buf.getvalue()
+
+
 for id, forum in forums.iteritems():
     print 'stat for {}'.format(id)
-    print '[b]Актуально на {}[/b]'.format(datetime.datetime.now().date().isoformat())
+    stream = StreamSplitter(config.report_split_by_size)
+    stream.print_and_reserve('[b]Актуально на {}[/b]'.format(datetime.datetime.now().date().isoformat()))
     entries, total_size = forum['entries'], forum['size']
-    print 'Общее количество хранимых раздач подраздела: {total_cnt} шт. ({total_size})'.format(
-        total_cnt=len(entries), total_size=pretty_size(total_size))
+    stream.print_and_reserve('Общее количество хранимых раздач подраздела: {total_cnt} шт. ({total_size})'.format(
+        total_cnt=len(entries), total_size=pretty_size(total_size)))
+
     cur = 0
+    approximate_post_entries = 500
+    hdr = '[spoiler="Раздачи, взятые на хранение, №№ {start} - {end}"]\n[list=1]'
+    ftr = '[/list]\n[/spoiler]\n'
     while cur < len(entries):
-        cur_section_len = min(config.report_split_by, len(entries) - cur)
-        print '[spoiler="Раздачи, взятые на хранение, №№ {start} - {end}"]'.format(
-            start=cur+1, end=cur+cur_section_len)
-        print '[list=1]'
-        print '\n'.join(entries[cur : cur + cur_section_len])
-        print '[/list]'
-        print '[/spoiler]'
-        print ''
-        cur += cur_section_len
+        stream.reserve(len(hdr.format(start=cur+1, end=cur+approximate_post_entries)) + len(ftr))
+        approximate_post_entries = 0
+        while cur + approximate_post_entries < len(entries) and stream.append(entries[cur + approximate_post_entries]):
+            approximate_post_entries += 1
+
+        print hdr.format(start=cur+1, end=cur+approximate_post_entries)
+        stream.dump()
+        print ftr
+
+        stream = StreamSplitter(config.report_split_by_size)
+        cur += approximate_post_entries
