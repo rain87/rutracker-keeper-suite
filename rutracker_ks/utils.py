@@ -25,11 +25,11 @@ def torrent_hash(torrent_dict):
     return hashlib.sha1(bencode(torrent_dict['info'])).hexdigest()
 
 
-KB = 1000.
-MB = 1000 * KB
-GB = 1000 * MB
-TB = 1000 * GB
-PB = 1000 * TB
+KB = 1024.
+MB = 1024 * KB
+GB = 1024 * MB
+TB = 1024 * GB
+PB = 1024 * TB
 
 def pretty_size(size):
     if size > TB:
