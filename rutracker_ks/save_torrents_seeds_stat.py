@@ -44,7 +44,7 @@ for forum_id in config.keeped_forums:
     # form stat for local torrents
     local_torrents = { thread_id: torrents_stats[thread_id][1]
         for thread_id in thread_ids
-        if thread_id in torrents_stats
+        if thread_id in torrents_stats and len(torrents_stats[thread_id]) > 1
     }
 
     # and remote stat, consisted of dying torrents absent locally
