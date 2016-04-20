@@ -62,13 +62,22 @@ for stat in stat_records:
 
 for fid, stat in avg_stats.iteritems():
     print 'Stat for {}:'.format(fid)
+
+    def trim_stat(stat):
+        remove_keys = [ k for k, v in stat.iteritems() if v.cnt <= 24 * 5 ]
+        for key in remove_keys:
+            del stat[key]
+
+    trim_stat(stat.local)
+    trim_stat(stat.remote)
+
     #local_sorted = sorted(stat.local.items(), key=lambda tpl: -tpl[1].avg())
     #remote_sorted = sorted(stat.remote.items(), key=lambda tpl: tpl[1].avg())
 
-    local_strong = [str(tpl[0]) for tpl in stat.local.items() if tpl[1].avg() > 2.5 and tpl[1].cnt > 24 * 5]
-    remote_dying = [str(tpl[0]) for tpl in stat.remote.items() if tpl[1].avg() < 1 and tpl[1].cnt > 24 * 5]
+    local_strong = [str(tpl[0]) for tpl in stat.local.items() if tpl[1].avg() > 2.5]
+    remote_dying = [str(tpl[0]) for tpl in stat.remote.items() if tpl[1].avg() < 1]
 
-    local_strong = [sha1.lower() for sha1 in api.get_tor_hash(local_strong).values()]
+    local_strong = [sha1.lower() for sha1 in api.get_tor_hash(local_strong).values() if sha1]
     remote_dying = api.get_tor_hash(remote_dying)
 
     local_strong = [sha1 for sha1 in local_strong if qbt.is_torrent_exists(sha1)]
@@ -87,13 +96,10 @@ for fid, stat in avg_stats.iteritems():
         with open('/tmp/dl/{}.torrent'.format(id), 'wb') as f:
             api.reliable_download_torrent(f, config.keeper_user_id, config.keeper_api_key, id)
 
-"""
-    print 'Local:'
-    for stat in local_sorted:
-        print '{}: {}'.format(stat[0], stat[1].avg())
+torrents = config.torrents_source(*config.torrents_source_args)
+torrents_meta = []
 
-    print 'Remote:'
-    for stat in remote_sorted:
-        print '{}: {}'.format(stat[0], stat[1].avg())
-    print ''
-"""
+infohashes = [os.path.splitext(os.path.basename(torrent_fname))[0] for torrent_fname in torrents]
+thread_ids = api.get_topic_id(infohashes)
+orphaned_local = [sha1 for sha1 in thread_ids.keys() if thread_ids[sha1] is None]
+print 'Orphaned local: {}'.format(len(orphaned_local))
