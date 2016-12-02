@@ -65,7 +65,11 @@ fetch_rutracker_meta(torrents_meta)
 forums = { id: {'entries': [], 'size': 0} for id in config.keeped_forums }
 for torrent in torrents_meta:
     meta = torrent[RUTRACKER_META_KEY]
-    forum_id = meta['thread_details']['forum_id']
+    try:
+        forum_id = meta['thread_details']['forum_id']
+    except:
+        print meta
+        raise
     if not meta['thread_details']['forum_id'] in config.keeped_forums:
         continue
     if not qbt.is_torrent_completed(torrent_hash(torrent)):
@@ -126,6 +130,7 @@ for id, forum in forums.iteritems():
         print hdr.format(start=cur+1, end=cur+approximate_post_entries)
         stream.dump()
         print ftr
+        print '-------------------------------------------------------------------------------------------'
 
         stream = StreamSplitter(config.report_split_by_size)
         cur += approximate_post_entries

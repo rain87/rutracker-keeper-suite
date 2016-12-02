@@ -55,6 +55,7 @@ def _iterative_get_data(api_name, full_list, param_generator):
         full_list = [full_list]
 
     # initialize cache
+    """
     global cache
     if not api_name in cache:
         cache[api_name] = {}
@@ -67,17 +68,21 @@ def _iterative_get_data(api_name, full_list, param_generator):
     full_list = list(set(full_list) - cache_hit)
     if not full_list:
         return ret
+    """
 
+    ret = {}
     current = 0
     while current < len(full_list):
         ret.update(_get_data(api_name, param_generator(
             full_list[current : current + request_size_limit])))
         current += request_size_limit
 
+    """
     # update cache with new data
     api_cache.update(ret)
     with open('/tmp/rutracker_cache.pickle', 'wb') as f:
         pickle.dump(cache, f)
+    """
 
     return ret
 
