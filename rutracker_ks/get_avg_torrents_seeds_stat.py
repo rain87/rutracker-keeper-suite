@@ -31,7 +31,7 @@ class TorrentStat:
 
 client = MongoClient()
 db = client.rutracker_torrents_stats
-stat_records = db.stat.find({'ts': { '$gte': datetime.datetime.now() - datetime.timedelta(weeks=1), '$lt': datetime.datetime.now() } })
+stat_records = db.stat.find({'ts': { '$gte': datetime.datetime.now() - datetime.timedelta(weeks=4), '$lt': datetime.datetime.now() } })
 
 ForumStat = namedtuple('ForumStat', 'local remote')
 avg_stats = {}
