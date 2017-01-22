@@ -14,7 +14,7 @@ def is_torrent_completed(sha1):
     return fresume['pieces'].find('\x00') == -1
 
 def is_torrent_exists(sha1):
-    return os.path.exists('/home/rain87/.local/share/data/qBittorrent/BT_backup/{}.fastresume'.format(sha1.lower()))
+    return os.path.exists('/home/rain87/.local/share/data/qBittorrent/BT_backup/{}.torrent'.format(sha1.lower()))
 
 def remove_torrents(sha1):
     if not sha1:

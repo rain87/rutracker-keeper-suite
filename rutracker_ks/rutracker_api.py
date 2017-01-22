@@ -111,7 +111,7 @@ def get_forum_torrents_status(id):
 
 
 def download_torrent(dest_file, keeper_user_id, keeper_api_key, thread, add_retracker=1):
-    r = requests.post('http://dl.rutracker.org/forum/dl.php',
+    r = requests.post('http://rutracker.org/forum/dl.php',
         headers={'content-type': 'application/x-www-form-urlencoded'},
         data='keeper_user_id={}&keeper_api_key={}&t={}&add_retracker_url={}'.format(keeper_user_id,
             keeper_api_key, thread, add_retracker))
