@@ -51,7 +51,7 @@ for forum_id in config.keeped_forums:
     remote_torrents = { thread_id: torrents_stats[thread_id][1]
         for thread_id in torrents_stats.keys()
         if thread_id not in thread_ids and
-            len(torrents_stats[thread_id]) == 2 and
+            len(torrents_stats[thread_id]) > 1 and
             torrents_stats[thread_id][1] < 3 and
             torrents_stats[thread_id][0] in (2, 8)
     }
