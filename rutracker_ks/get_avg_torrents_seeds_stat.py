@@ -81,7 +81,7 @@ for fid, stat in avg_stats.iteritems():
     remote_dying = api.get_tor_hash(remote_dying)
 
     local_strong = [sha1 for sha1 in local_strong if qbt.is_torrent_exists(sha1)]
-    remote_dying = [kv[0] for kv in remote_dying.iteritems() if not qbt.is_torrent_exists(kv[1])]
+    remote_dying = [kv[0] for kv in remote_dying.iteritems() if kv[1] and not qbt.is_torrent_exists(kv[1])]
 
     print "Weak local: {}".format(sum(int(tpl[1].avg() < 1) for tpl in stat.local.items()))
     print "Strong local: {}".format(len(local_strong))
