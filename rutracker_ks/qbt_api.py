@@ -22,6 +22,7 @@ def remove_torrents(sha1):
     if not isinstance(sha1, list):
         sha1 = [sha1]
     r = requests.post('http://localhost:8080/command/deletePerm',
-        headers={'content-type': 'application/x-www-form-urlencoded'},
+        headers={'content-type': 'application/x-www-form-urlencoded',
+                 'Referer': 'http://localhost:8080/'},
         data='hashes=' + '%7c'.join(sha1))
     assert r.status_code == 200, 'QBittorrent status code is not ok: {}'.format(r.text)
