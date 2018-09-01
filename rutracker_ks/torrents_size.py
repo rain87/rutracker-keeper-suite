@@ -14,7 +14,7 @@ from bencode import bdecode
 
 
 size = 0
-torrents = scan_folder('/tmp/dl/4')
+torrents = scan_folder('/tmp/dl/')
 for torrent in torrents:
     with open(torrent) as f:
         data = f.read()

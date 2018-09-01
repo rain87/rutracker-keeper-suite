@@ -9,5 +9,5 @@ keeper_api_key = 'some-weird-api-key'
 
 report_split_by_size=120000
 
-execfile('/home/rain87/rutracker_keeper.py')
+execfile('/media/truecrypt1/rutracker_keeper.py')
 

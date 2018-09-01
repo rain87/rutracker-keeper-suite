@@ -27,15 +27,22 @@ def byteify(input):
         return input
 
 
+def _reliably_get_data(url):
+    for i in range(0, 10):
+        r = requests.get(url, headers={'content-type': 'application/json'})
+        js = r.json()
+        if 'result' in js:
+            break
+    return byteify(js['result'])
+
+
 def _get_data(api_name, params={}):
     params_get_string = ''
     for k, v in params.iteritems():
         params_get_string += '{}={}&'.format(k, urllib.quote(v))
     if params_get_string:
         params_get_string = '?' + params_get_string
-    r = requests.get('http://api.rutracker.org/v1/' + api_name + params_get_string,
-        headers={'content-type': 'application/json'})
-    return byteify(r.json()['result'])
+    return _reliably_get_data('http://api.rutracker.org/v1/' + api_name + params_get_string)
 
 
 def get_limit():
@@ -103,11 +110,7 @@ get_tor_topic_data = lambda thread_id: _get_data_by('get_tor_topic_data', 'topic
 get_topic_id = lambda infohash: _get_data_by('get_topic_id', 'hash', infohash)
 get_forum_data = lambda forum_id: _get_data_by('get_forum_data', 'forum_id', forum_id)
 get_tor_hash = lambda topic_id: _get_data_by('get_tor_hash', 'topic_id', topic_id)
-
-
-def get_forum_torrents_status(id):
-    r = requests.get('http://api.rutracker.org/v1/static/pvc/f/{}'.format(id))
-    return byteify(r.json()['result'])
+get_forum_torrents_status = lambda id: _reliably_get_data('http://api.rutracker.org/v1/static/pvc/f/{}'.format(id))
 
 
 def download_torrent(dest_file, keeper_user_id, keeper_api_key, thread, add_retracker=1):

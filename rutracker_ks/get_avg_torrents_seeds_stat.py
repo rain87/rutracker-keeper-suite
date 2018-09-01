@@ -90,6 +90,7 @@ for fid, stat in avg_stats.iteritems():
 
     qbt.remove_torrents(local_strong)
 
+    continue
     for i in range(0, len(remote_dying)):
         print 'processing {} out of {}'.format(i, len(remote_dying))
         id = remote_dying[i]
@@ -103,3 +104,4 @@ infohashes = [os.path.splitext(os.path.basename(torrent_fname))[0] for torrent_f
 thread_ids = api.get_topic_id(infohashes)
 orphaned_local = [sha1 for sha1 in thread_ids.keys() if thread_ids[sha1] is None]
 print 'Orphaned local: {}'.format(len(orphaned_local))
+#qbt.remove_torrents(orphaned_local)
